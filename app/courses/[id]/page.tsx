@@ -1,199 +1,180 @@
-'use client';
-
-import { sampleCourses } from '@/lib/constants';
-import { ArrowLeft, Play, Clock, Users, Star, BookOpen, CheckCircle } from 'lucide-react';
+import { createClient } from '@/lib/supabase-server';
+import { auth } from '@clerk/nextjs/server';
+import { ArrowLeft, Clock, Users, Star, BookOpen, GraduationCap, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { use, useState } from 'react';
+import { notFound } from 'next/navigation';
+import { CourseActionsClient } from '@/components/dashboard/course-actions-client';
 
-export default function CourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const unwrappedParams = use(params);
-  const [enrolledLessons, setEnrolledLessons] = useState<number[]>([1, 2, 3]);
-  const course = sampleCourses.find((c) => c.id === parseInt(unwrappedParams.id)) || sampleCourses[0];
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
-  const lessons = [
-    { id: 1, title: 'Course Introduction', duration: 12, completed: true },
-    { id: 2, title: 'Getting Started', duration: 28, completed: true },
-    { id: 3, title: 'Core Concepts', duration: 45, completed: true },
-    { id: 4, title: 'Advanced Patterns', duration: 52, completed: false },
-    { id: 5, title: 'Real-world Projects', duration: 65, completed: false },
-    { id: 6, title: 'Performance Optimization', duration: 38, completed: false },
-    { id: 7, title: 'Final Project & Certification', duration: 90, completed: false },
-  ];
+export default async function CourseDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  const { userId } = await auth();
+  const supabase = await createClient();
+
+  // 1. Fetch Course Data
+  const { data: course, error: fetchError } = await supabase
+    .from('courses')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (fetchError || !course) {
+    console.error('Fetch error:', fetchError);
+    return notFound();
+  }
+
+  // 2. Fetch User Enrollment & Progress
+  let enrolled = false;
+  let completed = false;
+
+  if (userId) {
+    const { data: enrollData } = await supabase
+      .from('enrollments')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('course_id', id)
+      .maybeSingle();
+
+    enrolled = !!enrollData;
+
+    const { data: progressData } = await supabase
+      .from('progress')
+      .select('completed')
+      .eq('user_id', userId)
+      .eq('course_id', id)
+      .maybeSingle();
+
+    completed = progressData?.completed || false;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-black">
-      {/* Back button */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
-        <Link href="/courses" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors group">
+    <div className="min-h-screen bg-slate-950 text-slate-200">
+      {/* Navigation Header */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        <Link href="/courses" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-all group font-bold">
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           <span>Back to Courses</span>
         </Link>
       </div>
 
-      {/* Course header */}
-      <div className="border-b border-white/10 bg-gradient-to-r from-blue-500/10 to-violet-500/5">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Content */}
-            <div className="md:col-span-2">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{course.title}</h1>
-              <p className="text-xl text-slate-300 mb-6">
-                Master advanced patterns and techniques to become an expert engineer
-              </p>
+      <div className="max-w-7xl mx-auto px-4 md:px-8 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
 
-              {/* Metadata */}
-              <div className="flex flex-wrap gap-6 mb-6">
+          {/* Main Content: Player & Details */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* 16:9 Player Wrapper */}
+            <div className="relative w-full aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-black group">
+              {course.youtube_playlist_id ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/videoseries?list=${course.youtube_playlist_id}`}
+                  title={course.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full border-0"
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500">
+                  <GraduationCap className="w-20 h-20 mb-4 opacity-20" />
+                  <p className="font-bold">Playlist content not available</p>
+                </div>
+              )}
+            </div>
+
+            {/* Title & Description */}
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20">
+                  {course.category || 'General Engineering'}
+                </span>
+                <span className="px-3 py-1 rounded-full bg-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest border border-white/10">
+                  {course.level || 'Beginner'}
+                </span>
+              </div>
+
+              <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
+                {course.title}
+              </h1>
+
+              <div className="flex items-center gap-4 py-4 border-y border-white/5">
                 <div className="flex items-center gap-2">
-                  <img
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${course.instructor}`}
-                    alt={course.instructor}
-                    className="w-10 h-10 rounded-full"
-                  />
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold">
+                    {course.instructor?.[0] || 'Y'}
+                  </div>
                   <div>
-                    <p className="text-sm text-slate-400">Instructor</p>
-                    <p className="font-semibold text-white">{course.instructor}</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Instructor</p>
+                    <p className="font-bold text-white">{course.instructor || 'YouTube Expert'}</p>
                   </div>
                 </div>
-
+                <div className="h-8 w-px bg-white/10 mx-2" />
                 <div>
-                  <p className="text-sm text-slate-400">Rating</p>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-semibold text-white">{course.rating}</span>
-                    <span className="text-slate-400">({course.reviews})</span>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Rating</p>
+                  <div className="flex items-center gap-1.5">
+                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                    <span className="font-bold text-white text-lg">4.9</span>
                   </div>
-                </div>
-
-                <div>
-                  <p className="text-sm text-slate-400">Level</p>
-                  <p className="font-semibold text-white">{course.level}</p>
                 </div>
               </div>
 
-              {/* CTA Button */}
-              <Link
-                href={`/courses/${course.id}/lesson/1`}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-semibold transition-all duration-300 glow-blue transform hover:scale-105"
-              >
-                <Play className="w-5 h-5" />
-                Start Learning
-              </Link>
-            </div>
-
-            {/* Video placeholder */}
-            <div className="glass-lg rounded-xl overflow-hidden flex items-center justify-center h-64 bg-gradient-to-br from-blue-500/20 to-violet-500/20">
-              <Play className="w-16 h-16 text-blue-300 opacity-50" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Course content */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Curriculum */}
-          <div className="lg:col-span-2">
-            <div className="mb-12">
-              <h2 className="text-2xl font-bold text-white mb-6">Course Curriculum</h2>
-
-              <div className="space-y-3">
-                {lessons.map((lesson) => (
-                  <Link
-                    key={lesson.id}
-                    href={`/courses/${course.id}/lesson/${lesson.id}`}
-                    className="glass-hover p-4 rounded-lg flex items-center gap-4 transition-all duration-200 group hover:glow-blue"
-                  >
-                    <div className="flex-shrink-0">
-                      {lesson.completed ? (
-                        <CheckCircle className="w-6 h-6 text-emerald-400" />
-                      ) : (
-                        <Play className="w-6 h-6 text-blue-400 opacity-50 group-hover:opacity-100" />
-                      )}
-                    </div>
-
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white group-hover:text-blue-200 transition-colors">
-                        {lesson.title}
-                      </h3>
-                      <p className="text-sm text-slate-400">{lesson.duration} minutes</p>
-                    </div>
-
-                    <span className="text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* Course Description */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">About this course</h2>
-              <div className="glass p-6 rounded-xl space-y-4 text-slate-300">
-                <p>
-                  This comprehensive course covers advanced patterns and best practices used by top tech companies. Learn from industry experts and apply your knowledge to real-world projects.
-                </p>
-                <p>
-                  By the end of this course, you'll be able to architect scalable systems, optimize performance, and write production-ready code.
+              <div className="prose prose-invert max-w-none">
+                <h3 className="text-xl font-bold text-white mb-4">About this Course</h3>
+                <p className="text-slate-400 leading-relaxed text-lg">
+                  {course.description || 'No description provided for this course.'}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Course info card */}
-            <div className="glass rounded-xl p-6 space-y-4">
-              <h3 className="font-bold text-white">Course Details</h3>
+          {/* Sidebar: Enrollment & Stats */}
+          <aside className="space-y-6">
+            <div className="glass-card rounded-3xl p-8 border border-white/10 shadow-2xl sticky top-8">
+              <h3 className="text-xl font-bold text-white mb-6">Course Access</h3>
 
-              <div>
-                <p className="text-sm text-slate-400 mb-1">Duration</p>
-                <div className="flex items-center gap-2 text-white">
-                  <Clock className="w-4 h-4 text-blue-400" />
-                  <span>{course.duration}</span>
+              <CourseActionsClient
+                courseId={course.id}
+                enrolled={enrolled}
+                completed={completed}
+              />
+
+              <div className="mt-8 space-y-4">
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                  <Clock className="w-5 h-5 text-blue-400" />
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Duration</p>
+                    <p className="font-bold text-white">{course.duration || 'Self-paced'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                  <Users className="w-5 h-5 text-cyan-400" />
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Students</p>
+                    <p className="font-bold text-white">8,420+ Enrolled</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Certificate</p>
+                    <p className="font-bold text-white">Shareable Link</p>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <p className="text-sm text-slate-400 mb-1">Lessons</p>
-                <div className="flex items-center gap-2 text-white">
-                  <BookOpen className="w-4 h-4 text-violet-400" />
-                  <span>{lessons.length} lessons</span>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm text-slate-400 mb-1">Students</p>
-                <div className="flex items-center gap-2 text-white">
-                  <Users className="w-4 h-4 text-cyan-400" />
-                  <span>2,450+ students</span>
-                </div>
-              </div>
-
-              {/* Progress */}
-              <div className="pt-4 border-t border-white/10">
-                <p className="text-sm text-slate-400 mb-2">Your Progress</p>
-                <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-cyan-400"
-                    style={{ width: `${course.progress}%` }}
-                  />
-                </div>
-                <p className="text-sm text-slate-300 mt-2">{course.progress}% complete</p>
+              <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-blue-600/20 to-violet-600/20 border border-blue-500/20">
+                <p className="text-sm font-bold text-white mb-2">Technical Support</p>
+                <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                  Need help with this course? Our AI assistant is available 24/7 to answer your questions.
+                </p>
+                <Link href="/ai-assistant" className="text-xs font-bold text-primary hover:underline">
+                  Talk to AI Assistant →
+                </Link>
               </div>
             </div>
-
-            {/* Share card */}
-            <div className="glass rounded-xl p-6">
-              <h3 className="font-bold text-white mb-4">Share Course</h3>
-              <div className="space-y-2">
-                <button className="w-full px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm font-medium">
-                  Share on Twitter
-                </button>
-                <button className="w-full px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm font-medium">
-                  Share on LinkedIn
-                </button>
-              </div>
-            </div>
-          </div>
+          </aside>
         </div>
       </div>
     </div>
