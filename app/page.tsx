@@ -1,5 +1,4 @@
-'use client';
-
+import { SignInButton, SignOutButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, Code2, Users, Trophy, Zap } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -16,7 +15,14 @@ export default function Home() {
             <Link href="/roadmaps" className="text-foreground hover:text-primary transition-colors text-sm font-medium text-primary">Roadmaps</Link>
             <Link href="/dashboard" className="text-foreground hover:text-primary transition-colors text-sm">Dashboard</Link>
             <ThemeToggle />
-            <button className="button-primary text-sm">Sign In</button>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className="button-primary text-sm">Sign In</button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           </div>
         </div>
       </nav>
