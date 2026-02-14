@@ -131,17 +131,26 @@
   * {
     @apply border-border;
   }
+
   html {
     color-scheme: light;
   }
+
   html.dark {
     color-scheme: dark;
   }
+
   body {
     @apply bg-background text-foreground transition-colors duration-300;
     font-family: 'Inter', sans-serif;
   }
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Sora', sans-serif;
     @apply font-bold;
     letter-spacing: -0.015em;
@@ -149,11 +158,12 @@
 }
 
 @layer components {
+
   /* Light mode card styles */
   .card-elevated {
     @apply bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-all duration-300;
   }
-  
+
   .card-flat {
     @apply bg-card border-b border-border rounded-none;
   }

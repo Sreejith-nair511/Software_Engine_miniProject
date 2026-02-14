@@ -128,37 +128,113 @@ export default function SettingsPage() {
                         )}
 
                         {activeTab === 'appearance' && (
-                            <section className="glass-lg p-6 md:p-8 rounded-2xl border border-border">
-                                <h2 className="text-xl font-bold text-foreground mb-2">Interface Themes</h2>
-                                <p className="text-muted-foreground mb-8 text-sm">Choose between different premium visual styles for your dashboard.</p>
+                            <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                {/* Theme Selection */}
+                                <div className="glass-lg p-6 md:p-8 rounded-2xl border border-border">
+                                    <h2 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
+                                        <Palette className="w-5 h-5 text-primary" /> Interface Themes
+                                    </h2>
+                                    <p className="text-muted-foreground mb-8 text-sm">Choose between different premium visual styles for your dashboard.</p>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {themes.map((t) => (
-                                        <button
-                                            key={t.id}
-                                            onClick={() => setTheme(t.id as any)}
-                                            className={`relative flex items-center justify-between p-4 rounded-xl border-2 transition-all ${theme === t.id
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {themes.map((t) => (
+                                            <button
+                                                key={t.id}
+                                                onClick={() => setTheme(t.id as any)}
+                                                className={`relative flex items-center justify-between p-4 rounded-xl border-2 transition-all group ${theme === t.id
                                                     ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
                                                     : 'border-border hover:border-muted-foreground/30 bg-muted/20'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className={`p-2 rounded-lg ${t.id === 'light' ? 'bg-slate-100 text-slate-600' : 'bg-slate-800'}`}>
-                                                    {t.icon}
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`p-2 rounded-lg transition-transform group-hover:scale-110 ${t.id === 'light' ? 'bg-slate-100 text-slate-600' : 'bg-slate-800'}`}>
+                                                        {t.icon}
+                                                    </div>
+                                                    <div className="font-bold text-foreground">{t.name}</div>
                                                 </div>
-                                                <div className="font-bold text-foreground">{t.name}</div>
-                                            </div>
-                                            {theme === t.id && (
-                                                <Check className="w-5 h-5 text-primary" />
-                                            )}
+                                                {theme === t.id && (
+                                                    <Check className="w-5 h-5 text-primary animate-in zoom-in" />
+                                                )}
 
-                                            {/* Theme Preview */}
-                                            <div className="absolute right-4 bottom-4 flex gap-1">
-                                                <div className={`w-3 h-3 rounded-full ${t.color}`} />
-                                                <div className="w-3 h-3 rounded-full bg-primary" />
-                                            </div>
-                                        </button>
-                                    ))}
+                                                <div className="absolute right-4 bottom-4 flex gap-1">
+                                                    <div className={`w-3 h-3 rounded-full ${t.color}`} />
+                                                    <div className="w-3 h-3 rounded-full bg-primary" />
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Accent Color Selection */}
+                                <div className="glass-lg p-6 md:p-8 rounded-2xl border border-border">
+                                    <h2 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
+                                        <div className="w-5 h-5 rounded-full bg-primary" /> Accent Color
+                                    </h2>
+                                    <p className="text-muted-foreground mb-8 text-sm">Personalize your workspace with a unique primary color accent.</p>
+
+                                    <div className="flex flex-wrap gap-4">
+                                        {[
+                                            { id: 'blue', label: 'Classic Blue', hex: 'bg-blue-500' },
+                                            { id: 'indigo', label: 'Royal Indigo', hex: 'bg-indigo-500' },
+                                            { id: 'violet', label: 'Ethereal Violet', hex: 'bg-violet-500' },
+                                            { id: 'rose', label: 'Deep Rose', hex: 'bg-rose-500' },
+                                            { id: 'emerald', label: 'Vibrant Emerald', hex: 'bg-emerald-500' },
+                                        ].map((color) => (
+                                            <button
+                                                key={color.id}
+                                                onClick={() => (useTheme() as any).setAccentColor(color.id)}
+                                                className={`group flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${(useTheme() as any).accentColor === color.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted'}`}
+                                            >
+                                                <div className={`w-10 h-10 rounded-full ${color.hex} shadow-lg group-hover:scale-110 transition-transform flex items-center justify-center`}>
+                                                    {(useTheme() as any).accentColor === color.id && <Check className="w-6 h-6 text-white" />}
+                                                </div>
+                                                <span className="text-xs font-semibold text-foreground">{color.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Advanced UI Options */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Glassmorphism Intensity */}
+                                    <div className="glass-lg p-6 rounded-2xl border border-border">
+                                        <h3 className="text-lg font-bold text-foreground mb-1">Glass Intensity</h3>
+                                        <p className="text-sm text-muted-foreground mb-6">Adjust the depth and blur of UI elements.</p>
+                                        <div className="flex gap-2 p-1 bg-muted/30 rounded-lg">
+                                            {['low', 'medium', 'high'].map((intensity) => (
+                                                <button
+                                                    key={intensity}
+                                                    onClick={() => (useTheme() as any).setGlassIntensity(intensity)}
+                                                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${(useTheme() as any).glassIntensity === intensity
+                                                            ? 'bg-primary text-primary-foreground shadow-md'
+                                                            : 'text-muted-foreground hover:text-foreground'
+                                                        }`}
+                                                >
+                                                    {intensity.toUpperCase()}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Visual Motion */}
+                                    <div className="glass-lg p-6 rounded-2xl border border-border">
+                                        <h3 className="text-lg font-bold text-foreground mb-1">Visual Motion</h3>
+                                        <p className="text-sm text-muted-foreground mb-6">Control the speed and frequency of site animations.</p>
+                                        <div className="flex gap-2 p-1 bg-muted/30 rounded-lg">
+                                            {['none', 'subtle', 'full'].map((level) => (
+                                                <button
+                                                    key={level}
+                                                    onClick={() => (useTheme() as any).setAnimations(level)}
+                                                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${(useTheme() as any).animations === level
+                                                            ? 'bg-primary text-primary-foreground shadow-md'
+                                                            : 'text-muted-foreground hover:text-foreground'
+                                                        }`}
+                                                >
+                                                    {level.toUpperCase()}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             </section>
                         )}
