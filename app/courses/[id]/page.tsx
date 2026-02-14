@@ -3,11 +3,12 @@
 import { sampleCourses } from '@/lib/constants';
 import { ArrowLeft, Play, Clock, Users, Star, BookOpen, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { use, useState } from 'react';
 
-export default function CourseDetailPage({ params }: { params: { id: string } }) {
+export default function CourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const unwrappedParams = use(params);
   const [enrolledLessons, setEnrolledLessons] = useState<number[]>([1, 2, 3]);
-  const course = sampleCourses.find((c) => c.id === parseInt(params.id)) || sampleCourses[0];
+  const course = sampleCourses.find((c) => c.id === parseInt(unwrappedParams.id)) || sampleCourses[0];
 
   const lessons = [
     { id: 1, title: 'Course Introduction', duration: 12, completed: true },

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import Link from 'next/link';
 import { Play, ChevronRight, ChevronLeft, CheckCircle, Lock, Volume2, Settings } from 'lucide-react';
 
@@ -17,10 +17,11 @@ const lessons = [
 export default function LessonPage({
   params,
 }: {
-  params: { id: string; lessonId: string };
+  params: Promise<{ id: string; lessonId: string }>;
 }) {
+  const unwrappedParams = use(params);
   const [isCompleted, setIsCompleted] = useState(false);
-  const currentLessonId = parseInt(params.lessonId);
+  const currentLessonId = parseInt(unwrappedParams.lessonId);
   const currentLesson = lessons.find((l) => l.id === currentLessonId);
   const nextLesson = lessons.find((l) => l.id === currentLessonId + 1);
   const prevLesson = lessons.find((l) => l.id === currentLessonId - 1);
@@ -31,9 +32,8 @@ export default function LessonPage({
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-black flex">
       {/* Sidebar */}
       <div
-        className={`${
-          sidebarOpen ? 'w-72' : 'w-0'
-        } transition-all duration-300 border-r border-white/10 bg-slate-900/50 backdrop-blur-xl overflow-hidden flex flex-col`}
+        className={`${sidebarOpen ? 'w-72' : 'w-0'
+          } transition-all duration-300 border-r border-white/10 bg-slate-900/50 backdrop-blur-xl overflow-hidden flex flex-col`}
       >
         <div className="p-6 border-b border-white/10">
           <h3 className="font-bold text-white">Course Curriculum</h3>
@@ -47,12 +47,11 @@ export default function LessonPage({
           {lessons.map((lesson) => (
             <Link
               key={lesson.id}
-              href={`/courses/${params.id}/lesson/${lesson.id}`}
-              className={`block p-3 rounded-lg transition-all duration-200 ${
-                lesson.id === currentLessonId
-                  ? 'bg-gradient-to-r from-blue-500/30 to-violet-500/30 border border-blue-400/30 text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
+              href={`/courses/${unwrappedParams.id}/lesson/${lesson.id}`}
+              className={`block p-3 rounded-lg transition-all duration-200 ${lesson.id === currentLessonId
+                ? 'bg-gradient-to-r from-blue-500/30 to-violet-500/30 border border-blue-400/30 text-white'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
             >
               <div className="flex items-start gap-2">
                 {lesson.completed ? (
@@ -123,7 +122,7 @@ export default function LessonPage({
               <div className="flex gap-3 w-full md:w-auto">
                 {prevLesson && (
                   <Link
-                    href={`/courses/${params.id}/lesson/${prevLesson.id}`}
+                    href={`/courses/${unwrappedParams.id}/lesson/${prevLesson.id}`}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition-all duration-300"
                   >
                     <ChevronLeft className="w-5 h-5" />
@@ -151,7 +150,7 @@ export default function LessonPage({
 
                 {nextLesson && (
                   <Link
-                    href={`/courses/${params.id}/lesson/${nextLesson.id}`}
+                    href={`/courses/${unwrappedParams.id}/lesson/${nextLesson.id}`}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-semibold transition-all duration-300 glow-blue"
                   >
                     Next
