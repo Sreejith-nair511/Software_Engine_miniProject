@@ -1,4 +1,4 @@
-# 🚀 Deployment Guide: Engineering Career OS
+# Deployment Guide: Engineering Career OS
 
 This guide provides step-by-step instructions to deploy your scalable engineering course platform to production using Vercel, Supabase, and Clerk.
 
