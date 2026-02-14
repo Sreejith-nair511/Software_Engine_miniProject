@@ -4,6 +4,12 @@ import { WelcomeCard } from '@/components/dashboard/welcome-card';
 import { CourseCard } from '@/components/dashboard/course-card';
 import { TrendingUp, Award, Target, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Dashboard | Engineering Career OS',
+  description: 'Manage your engineering learning journey, track your progress, and explore recommended courses.',
+};
 
 export default async function DashboardPage() {
   const { userId } = await auth();
