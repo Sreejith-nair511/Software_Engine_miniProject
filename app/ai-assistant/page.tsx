@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Plus, Settings, Trash2, Sparkles, Code } from 'lucide-react';
+import { Send, Plus, Settings, Trash2, Sparkles, Code, User as UserIcon, Bot } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   id: string;
@@ -39,15 +41,15 @@ export default function AIAssistantPage() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
+  const handleSendMessage = async (e?: React.FormEvent, prompt?: string) => {
+    if (e) e.preventDefault();
+    const messageContent = prompt || inputValue;
+    if (!messageContent.trim()) return;
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputValue,
+      content: messageContent,
       timestamp: new Date(),
     };
 
@@ -55,21 +57,60 @@ export default function AIAssistantPage() {
     setInputValue('');
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content }))
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch AI response');
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = '';
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `That's a great question! Based on your learning path, I recommend diving deep into this topic. Here are some resources and tips to help you master it:\n\n1. Start with the fundamentals\n2. Practice with real-world examples\n3. Review related concepts\n4. Apply your knowledge to projects\n\nWould you like me to recommend specific courses or create a personalized study plan?`,
+        content: '',
         timestamp: new Date(),
       };
+
       setMessages((prev) => [...prev, assistantMessage]);
+
+      while (true) {
+        const { done, value } = await reader!.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        assistantContent += chunk;
+
+        setMessages((prev) => {
+          const lastMsg = prev[prev.length - 1];
+          if (lastMsg.role === 'assistant') {
+            return [...prev.slice(0, -1), { ...lastMsg, content: assistantContent }];
+          }
+          return prev;
+        });
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again later.',
+        timestamp: new Date()
+      }]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleSuggestedPrompt = (prompt: string) => {
-    setInputValue(prompt);
+    handleSendMessage(undefined, prompt);
   };
 
   return (
@@ -133,23 +174,38 @@ export default function AIAssistantPage() {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
+                {message.role === 'assistant' && (
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-5 h-5 text-primary" />
+                  </div>
+                )}
+
                 <div
-                  className={`max-w-md lg:max-w-2xl rounded-lg p-4 ${
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground dark:bg-primary dark:text-white'
-                      : 'card-elevated dark:glass-card'
-                  }`}
+                  className={`max-w-md lg:max-w-2xl rounded-2xl px-5 py-4 ${message.role === 'user'
+                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                      : 'card-elevated glass-lg shadow-xl'
+                    } transition-all duration-300 animate-in fade-in zoom-in-95`}
                 >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                  <p className="text-xs opacity-50 mt-2">
+                  <div className={`prose prose-sm dark:prose-invert max-w-none ${message.role === 'user' ? 'text-white' : 'text-foreground'}`}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                  <p className={`text-[10px] mt-3 opacity-40 font-medium ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
                     {message.timestamp.toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit',
                     })}
                   </p>
                 </div>
+
+                {message.role === 'user' && (
+                  <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                    <UserIcon className="w-5 h-5 text-secondary" />
+                  </div>
+                )}
               </div>
             ))}
 

@@ -2,7 +2,9 @@
 
 import { useUser } from "@clerk/nextjs";
 import { useState, useEffect } from 'react';
-import { Download, Eye, RotateCcw, Save } from 'lucide-react';
+import { Download, Eye, RotateCcw, Save, Sparkles, Loader2, X } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ResumeData {
   fullName: string;
@@ -60,6 +62,8 @@ export default function ResumeBuilderPage() {
   const { user, isLoaded } = useUser();
   const [resume, setResume] = useState<ResumeData>(defaultResume);
   const [previewMode, setPreviewMode] = useState(true);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -70,6 +74,49 @@ export default function ResumeBuilderPage() {
       }));
     }
   }, [user, isLoaded]);
+
+  const handleAnalyzeResume = async () => {
+    setIsAnalyzing(true);
+    setAiFeedback(null);
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: `Please analyze this resume data and provide constructive feedback on how to improve it for a Senior Software Engineering role. Focus on:
+              1. Impact-driven descriptions
+              2. Technical skill relevance
+              3. Summary conciseness
+              4. Formatting suggestions
+              
+              Resume Data: ${JSON.stringify(resume, null, 2)}`
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to analyze resume');
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let feedback = '';
+
+      while (true) {
+        const { done, value } = await reader!.read();
+        if (done) break;
+        feedback += decoder.decode(value, { stream: true });
+        setAiFeedback(feedback);
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+      setAiFeedback('Failed to analyze resume. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const handleInputChange = (field: keyof ResumeData, value: any) => {
     setResume((prev) => ({ ...prev, [field]: value }));
@@ -125,6 +172,14 @@ export default function ResumeBuilderPage() {
             >
               <Eye className="w-5 h-5" />
             </button>
+            <button
+              onClick={handleAnalyzeResume}
+              disabled={isAnalyzing}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all duration-300 glow-purple disabled:opacity-50"
+            >
+              {isAnalyzing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+              {isAnalyzing ? 'Analyzing...' : 'AI Analyze'}
+            </button>
             <button className="flex items-center gap-2 px-4 py-2 glass-hover rounded-lg text-white font-medium transition-all duration-300">
               <Save className="w-5 h-5" />
               Save
@@ -137,7 +192,30 @@ export default function ResumeBuilderPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* AI Feedback Section */}
+        {aiFeedback && (
+          <div className="glass-lg rounded-2xl border border-purple-500/30 bg-purple-500/5 p-6 animate-in slide-in-from-top-4 duration-500">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-purple-400 font-bold">
+                <Sparkles className="w-5 h-5" />
+                AI Career Feedback
+              </div>
+              <button
+                onClick={() => setAiFeedback(null)}
+                className="p-1 hover:bg-white/10 rounded-full text-slate-400 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="prose prose-invert prose-purple prose-sm max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {aiFeedback}
+              </ReactMarkdown>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Form Section */}
           {!previewMode && (
