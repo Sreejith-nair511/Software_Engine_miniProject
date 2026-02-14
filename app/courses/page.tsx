@@ -85,29 +85,29 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
     <div className="min-h-screen bg-slate-950">
       {/* Hero Header */}
       <div className="relative border-b border-white/10 bg-gradient-to-b from-blue-500/10 via-transparent to-transparent">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-          <h1 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-16">
+          <h1 className="text-3xl md:text-6xl font-black text-white mb-4 md:mb-6 tracking-tight">
             Master <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Engineering</span>
           </h1>
-          <p className="text-slate-400 text-xl max-w-2xl leading-relaxed">
+          <p className="text-slate-400 text-lg md:text-xl max-w-2xl leading-relaxed">
             Choose from over 300+ professional playlists curated from industry-leading engineers.
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-12">
           {/* Sidebar / Filters */}
-          <aside className="lg:col-span-1 space-y-8">
+          <aside className="lg:col-span-1 space-y-6 md:space-y-8">
             <Suspense fallback={<Loader2 className="animate-spin text-primary" />}>
               <CourseFilters categories={categories as string[]} levels={levels} />
             </Suspense>
           </aside>
 
           {/* Course Grid */}
-          <main className="lg:col-span-3 space-y-8">
-            <div className="flex items-center justify-between border-b border-white/5 pb-6">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-500">
+          <main className="lg:col-span-3 space-y-6 md:space-y-8">
+            <div className="flex items-center justify-between border-b border-white/5 pb-4 md:pb-6">
+              <h2 className="text-[10px] md:text-sm font-bold uppercase tracking-widest text-slate-500">
                 Found <span className="text-white">{count || 0}</span> result{(count || 0) !== 1 ? 's' : ''}
               </h2>
             </div>

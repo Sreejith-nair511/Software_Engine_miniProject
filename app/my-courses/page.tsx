@@ -38,20 +38,20 @@ export default async function MyCoursesPage() {
     const enrolledCourses = enrollments?.map((e: any) => e.courses).filter(Boolean) || [];
 
     return (
-        <div className="min-h-screen bg-slate-950 px-4 md:px-8 py-12">
-            <div className="max-w-7xl mx-auto space-y-12">
+        <div className="min-h-screen bg-slate-950 px-4 md:px-8 py-8 md:py-12">
+            <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
-                        <h1 className="text-4xl font-black text-white tracking-tight mb-2">My <span className="text-primary">Learning</span></h1>
-                        <p className="text-slate-400 font-medium">Continue where you left off and track your progress.</p>
+                        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2">My <span className="text-primary">Learning</span></h1>
+                        <p className="text-slate-400 font-medium text-sm md:text-base">Continue where you left off and track your progress.</p>
                     </div>
                     <Link
                         href="/courses"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-all border border-white/10"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-all border border-white/10 text-sm md:text-base justify-center"
                     >
                         Explore More Courses
-                        <ArrowRight className="w-5 h-5 text-primary" />
+                        <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                     </Link>
                 </div>
 

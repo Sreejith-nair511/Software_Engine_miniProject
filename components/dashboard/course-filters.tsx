@@ -66,18 +66,18 @@ export function CourseFilters({ categories, levels }: CourseFiltersProps) {
                 )}
             </div>
 
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col gap-6">
                 {/* Category Filter */}
                 <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Category</span>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex overflow-x-auto pb-2 -mx-4 px-4 gap-2 no-scrollbar scroll-smooth">
                         {['all', ...categories].map((cat) => (
                             <button
                                 key={cat}
                                 onClick={() => updateFilters({ category: cat })}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${currentCategory === cat
-                                        ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
-                                        : 'bg-white/5 text-muted-foreground hover:bg-white/10'
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 ${currentCategory === cat
+                                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
+                                    : 'bg-white/5 text-muted-foreground hover:bg-white/10'
                                     }`}
                             >
                                 {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -89,14 +89,14 @@ export function CourseFilters({ categories, levels }: CourseFiltersProps) {
                 {/* Level Filter */}
                 <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Level</span>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex overflow-x-auto pb-2 -mx-4 px-4 gap-2 no-scrollbar scroll-smooth">
                         {['all', ...levels].map((level) => (
                             <button
                                 key={level}
                                 onClick={() => updateFilters({ level: level })}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${currentLevel === level
-                                        ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
-                                        : 'bg-white/5 text-muted-foreground hover:bg-white/10'
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 ${currentLevel === level
+                                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
+                                    : 'bg-white/5 text-muted-foreground hover:bg-white/10'
                                     }`}
                             >
                                 {level}

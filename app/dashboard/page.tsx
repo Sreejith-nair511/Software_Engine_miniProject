@@ -13,9 +13,8 @@ export default async function DashboardPage() {
   // 1. Fetch Enrolled Courses
   const { data: enrollments } = await supabase
     .from('enrollments')
-    .select(`course_id, courses (*)`)
-    .eq('user_id', userId)
-    .limit(4);
+    .select('course_id, courses(*)')
+    .eq('user_id', userId);
 
   const enrolledCourses = enrollments?.map((e: any) => e.courses).filter(Boolean) || [];
 
@@ -26,77 +25,75 @@ export default async function DashboardPage() {
     .eq('user_id', userId);
 
   const userProgress: Record<string, number> = {};
-  progressData?.forEach((p: { course_id: string; completed: boolean }) => {
+  progressData?.forEach((p: any) => {
     userProgress[p.course_id] = p.completed ? 100 : 0;
   });
 
-  // 3. Fetch Recommended Courses (just latest 4)
-  const { data: recommended } = await supabase
+  // 3. Fetch Recommended Courses (excluding enrolled)
+  const enrolledIds = enrolledCourses.map((c: any) => c.id);
+  let { data: recommendedCourses } = await supabase
     .from('courses')
     .select('*')
-    .order('created_at', { ascending: false })
-    .limit(4);
+    .limit(6);
+
+  if (enrolledIds.length > 0) {
+    recommendedCourses = recommendedCourses?.filter((c: any) => !enrolledIds.includes(c.id)) || [];
+  }
 
   return (
     <div className="flex-1 bg-slate-950 p-4 md:p-8 transition-colors duration-300 min-h-screen">
-      <div className="max-w-7xl mx-auto space-y-12">
+      <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
         {/* Welcome section */}
         <WelcomeCard
           name={user?.firstName || 'Developer'}
-          completedCourses={progressData?.filter(p => p.completed).length || 0}
-          totalCourses={enrollments?.length || 0}
+          completedCourses={progressData?.filter((p: any) => p.completed).length || 0}
+          totalCourses={enrolledCourses.length || 0}
         />
 
-        {/* Stats section (Placeholders but styled) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="glass-card p-8 rounded-3xl border border-white/5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <TrendingUp className="w-16 h-16 text-primary" />
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+          <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-3xl border border-white/5 flex items-center gap-4 md:gap-6 hover:border-primary/30 transition-all group">
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-blue-400" />
             </div>
-            <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-2">Current Streak</p>
-            <p className="text-4xl font-black text-white">12 Days</p>
-            <div className="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-primary w-[60%]" />
-            </div>
-          </div>
-
-          <div className="glass-card p-8 rounded-3xl border border-white/5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Award className="w-16 h-16 text-secondary" />
-            </div>
-            <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-2">Skills Unlocked</p>
-            <p className="text-4xl font-black text-white">24</p>
-            <div className="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-secondary w-[40%]" />
+            <div>
+              <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest">Active Velocity</p>
+              <h4 className="text-xl md:text-2xl font-black text-white">84%</h4>
             </div>
           </div>
 
-          <div className="glass-card p-8 rounded-3xl border border-white/5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Target className="w-16 h-16 text-emerald-400" />
+          <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-3xl border border-white/5 flex items-center gap-4 md:gap-6 hover:border-emerald-500/30 transition-all group">
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Award className="w-6 h-6 md:w-8 md:h-8 text-emerald-400" />
             </div>
-            <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-2">Goals Achieved</p>
-            <p className="text-4xl font-black text-white">15/30</p>
-            <div className="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-400 w-[50%]" />
+            <div>
+              <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest">Achievements</p>
+              <h4 className="text-xl md:text-2xl font-black text-white">12 Badges</h4>
+            </div>
+          </div>
+
+          <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-3xl border border-white/5 flex items-center gap-4 md:gap-6 hover:border-violet-500/30 transition-all group sm:col-span-2 lg:col-span-1">
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Target className="w-6 h-6 md:w-8 md:h-8 text-violet-400" />
+            </div>
+            <div>
+              <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest">Learning Goal</p>
+              <h4 className="text-xl md:text-2xl font-black text-white">Backend Expert</h4>
             </div>
           </div>
         </div>
 
         {/* Continue Learning */}
         {enrolledCourses.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
-              <div>
-                <h2 className="text-2xl font-black text-white tracking-tight">Continue <span className="text-primary">Learning</span></h2>
-                <p className="text-slate-500 text-sm font-bold uppercase tracking-widest mt-1">Pick up where you left off</p>
-              </div>
-              <Link href="/my-courses" className="text-xs font-black text-primary hover:underline flex items-center gap-1 uppercase tracking-widest">
-                View All <ArrowRight className="w-4 h-4" />
+          <section className="space-y-6 md:space-y-8">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-lg md:text-2xl font-black text-white tracking-tight">Continue Learning</h3>
+              <Link href="/my-courses" className="text-[10px] md:text-xs font-black text-primary uppercase tracking-widest flex items-center gap-1.5 hover:gap-2.5 transition-all">
+                View All <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {enrolledCourses.map((course: any) => (
                 <CourseCard
                   key={`enroll-${course.id}`}
@@ -111,23 +108,19 @@ export default async function DashboardPage() {
                 />
               ))}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Recommended section */}
-        <div>
-          <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
-            <div>
-              <h2 className="text-2xl font-black text-white tracking-tight">Recommended <span className="text-secondary">For You</span></h2>
-              <p className="text-slate-500 text-sm font-bold uppercase tracking-widest mt-1">Based on industry trends</p>
-            </div>
-            <Link href="/courses" className="text-xs font-black text-secondary hover:underline flex items-center gap-1 uppercase tracking-widest">
-              Browse More <ArrowRight className="w-4 h-4" />
+        {/* Recommended Courses Grid */}
+        <section className="space-y-6 md:space-y-8">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-lg md:text-2xl font-black text-white tracking-tight">Recommended for You</h3>
+            <Link href="/courses" className="text-[10px] md:text-xs font-black text-primary uppercase tracking-widest flex items-center gap-1.5 hover:gap-2.5 transition-all">
+              Discover All <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {recommended?.map((course: any) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {recommendedCourses?.map((course: any) => (
               <CourseCard
                 key={`rec-${course.id}`}
                 id={course.id}
@@ -136,12 +129,12 @@ export default async function DashboardPage() {
                 thumbnail_url={course.thumbnail_url}
                 category={course.category}
                 level={course.level}
-                enrolled={false}
-                progress={0}
+                enrolled={enrolledIds.includes(course.id)}
+                progress={userProgress[course.id] || 0}
               />
             ))}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
