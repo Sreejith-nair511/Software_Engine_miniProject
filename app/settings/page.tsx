@@ -29,7 +29,12 @@ const themes = [
 
 export default function SettingsPage() {
     const { user, isLoaded } = useUser();
-    const { theme, setTheme } = useTheme();
+    const {
+        theme, setTheme,
+        accentColor, setAccentColor,
+        glassIntensity, setGlassIntensity,
+        animations, setAnimations
+    } = useTheme();
     const [activeTab, setActiveTab] = useState('profile');
 
     if (!isLoaded) return null;
@@ -182,11 +187,11 @@ export default function SettingsPage() {
                                         ].map((color) => (
                                             <button
                                                 key={color.id}
-                                                onClick={() => (useTheme() as any).setAccentColor(color.id)}
-                                                className={`group flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${(useTheme() as any).accentColor === color.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted'}`}
+                                                onClick={() => setAccentColor(color.id as any)}
+                                                className={`group flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${accentColor === color.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted'}`}
                                             >
                                                 <div className={`w-10 h-10 rounded-full ${color.hex} shadow-lg group-hover:scale-110 transition-transform flex items-center justify-center`}>
-                                                    {(useTheme() as any).accentColor === color.id && <Check className="w-6 h-6 text-white" />}
+                                                    {accentColor === color.id && <Check className="w-6 h-6 text-white" />}
                                                 </div>
                                                 <span className="text-xs font-semibold text-foreground">{color.label}</span>
                                             </button>
@@ -204,8 +209,8 @@ export default function SettingsPage() {
                                             {['low', 'medium', 'high'].map((intensity) => (
                                                 <button
                                                     key={intensity}
-                                                    onClick={() => (useTheme() as any).setGlassIntensity(intensity)}
-                                                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${(useTheme() as any).glassIntensity === intensity
+                                                    onClick={() => setGlassIntensity(intensity as any)}
+                                                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${glassIntensity === intensity
                                                             ? 'bg-primary text-primary-foreground shadow-md'
                                                             : 'text-muted-foreground hover:text-foreground'
                                                         }`}
@@ -224,8 +229,8 @@ export default function SettingsPage() {
                                             {['none', 'subtle', 'full'].map((level) => (
                                                 <button
                                                     key={level}
-                                                    onClick={() => (useTheme() as any).setAnimations(level)}
-                                                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${(useTheme() as any).animations === level
+                                                    onClick={() => setAnimations(level as any)}
+                                                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${animations === level
                                                             ? 'bg-primary text-primary-foreground shadow-md'
                                                             : 'text-muted-foreground hover:text-foreground'
                                                         }`}
