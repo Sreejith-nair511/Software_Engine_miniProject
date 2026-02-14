@@ -13,6 +13,7 @@ export default function Home() {
           <div className="text-xl font-bold text-foreground">CareerOS</div>
           <div className="flex items-center gap-6">
             <Link href="/courses" className="text-foreground hover:text-primary transition-colors text-sm">Courses</Link>
+            <Link href="/roadmaps" className="text-foreground hover:text-primary transition-colors text-sm font-medium text-primary">Roadmaps</Link>
             <Link href="/dashboard" className="text-foreground hover:text-primary transition-colors text-sm">Dashboard</Link>
             <ThemeToggle />
             <button className="button-primary text-sm">Sign In</button>
