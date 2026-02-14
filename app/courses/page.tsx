@@ -5,6 +5,12 @@ import { CourseCard } from '@/components/dashboard/course-card';
 import { CourseFilters } from '@/components/dashboard/course-filters';
 import { Pagination } from '@/components/dashboard/pagination';
 import { Loader2 } from 'lucide-react';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Engineering Courses | Master Modern Software Engineering',
+  description: 'Explore over 300+ professional engineering playlists. Master Web Development, System Design, DevOps, and more with curated content from industry experts.',
+};
 
 interface CoursesPageProps {
   searchParams: Promise<{

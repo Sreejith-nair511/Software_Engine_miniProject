@@ -4,6 +4,18 @@ import { ArrowLeft, Clock, Users, Star, BookOpen, GraduationCap, ShieldCheck } f
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CourseActionsClient } from '@/components/dashboard/course-actions-client';
+import { Metadata } from 'next';
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: course } = await supabase.from('courses').select('title, description').eq('id', id).single();
+
+  return {
+    title: course ? `${course.title} | Engineering Platform` : 'Course Details',
+    description: course?.description?.slice(0, 160) || 'Learn more about this engineering course.',
+  };
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
