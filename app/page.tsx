@@ -21,7 +21,10 @@ export default function Home() {
               </SignInButton>
             </SignedOut>
             <SignedIn>
-              <UserButton />
+              <div className="flex items-center gap-4">
+                <Link href="/settings" className="text-foreground hover:text-primary transition-colors text-sm font-medium">Settings</Link>
+                <UserButton afterSignOutUrl="/" />
+              </div>
             </SignedIn>
           </div>
         </div>

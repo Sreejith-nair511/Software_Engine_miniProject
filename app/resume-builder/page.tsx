@@ -1,6 +1,5 @@
-'use client';
-
-import { useState } from 'react';
+import { useUser } from "@clerk/nextjs";
+import { useState, useEffect } from 'react';
 import { Download, Eye, RotateCcw, Save } from 'lucide-react';
 
 interface ResumeData {
@@ -28,11 +27,11 @@ interface ResumeData {
 }
 
 const defaultResume: ResumeData = {
-  fullName: 'John Developer',
-  email: 'john@example.com',
-  phone: '+1 (555) 123-4567',
-  location: 'San Francisco, CA',
-  summary: 'Full-stack engineer with 5 years of experience building scalable web applications.',
+  fullName: '',
+  email: '',
+  phone: '',
+  location: '',
+  summary: 'Write a brief professional summary...',
   experience: [
     {
       id: '1',
@@ -41,14 +40,6 @@ const defaultResume: ResumeData = {
       startDate: '2021',
       endDate: 'Present',
       description: 'Led development of microservices architecture serving 1M+ users',
-    },
-    {
-      id: '2',
-      company: 'StartupCo',
-      position: 'Full Stack Developer',
-      startDate: '2019',
-      endDate: '2021',
-      description: 'Built and maintained customer-facing web applications using React and Node.js',
     },
   ],
   education: [
@@ -60,12 +51,23 @@ const defaultResume: ResumeData = {
       graduationDate: '2019',
     },
   ],
-  skills: ['React', 'Node.js', 'TypeScript', 'PostgreSQL', 'AWS', 'Docker', 'System Design'],
+  skills: ['React', 'Node.js', 'TypeScript'],
 };
 
 export default function ResumeBuilderPage() {
+  const { user, isLoaded } = useUser();
   const [resume, setResume] = useState<ResumeData>(defaultResume);
   const [previewMode, setPreviewMode] = useState(true);
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      setResume(prev => ({
+        ...prev,
+        fullName: user.fullName || '',
+        email: user.primaryEmailAddress?.emailAddress || '',
+      }));
+    }
+  }, [user, isLoaded]);
 
   const handleInputChange = (field: keyof ResumeData, value: any) => {
     setResume((prev) => ({ ...prev, [field]: value }));
@@ -138,8 +140,8 @@ export default function ResumeBuilderPage() {
           {/* Form Section */}
           {!previewMode && (
             <div className="lg:hidden space-y-6">
-              <FormSection 
-                resume={resume} 
+              <FormSection
+                resume={resume}
                 onInputChange={handleInputChange}
                 onExperienceChange={handleExperienceChange}
                 onAddExperience={addExperience}
@@ -156,8 +158,8 @@ export default function ResumeBuilderPage() {
 
           {/* Desktop Form */}
           <div className="hidden lg:block space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-            <FormSection 
-              resume={resume} 
+            <FormSection
+              resume={resume}
               onInputChange={handleInputChange}
               onExperienceChange={handleExperienceChange}
               onAddExperience={addExperience}
@@ -225,7 +227,7 @@ function FormSection({
                 className="w-full glass-sm px-4 py-2 text-white placeholder:text-slate-500 outline-none rounded-lg resize-none h-20"
                 placeholder="Describe your responsibilities and achievements..."
               />
-              <button 
+              <button
                 onClick={() => onRemoveExperience(exp.id)}
                 className="text-red-400 hover:text-red-300 text-sm font-medium"
               >
@@ -233,7 +235,7 @@ function FormSection({
               </button>
             </div>
           ))}
-          <button 
+          <button
             onClick={onAddExperience}
             className="w-full py-2 border-2 border-dashed border-white/20 hover:border-white/40 text-slate-300 hover:text-white rounded-lg transition-colors"
           >
